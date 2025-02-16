@@ -4,6 +4,7 @@ import {Component} from "./chart"
 import Prediction from "./prediction";
 import {TableDemo} from './table'
 import {Redical} from './redical'
+import {Days} from "./days"
 import Progressp  from "./progress";
 export default function Home() {
   return (
@@ -18,6 +19,9 @@ export default function Home() {
       </div>
       <div className="w-32 flex-1">
       <Redical/>
+      </div>
+      <div className="w-32 flex-1">
+      <Days/>
       </div>
       </div>
       <div className="flex flex-wrap gap-4 mt-2">
