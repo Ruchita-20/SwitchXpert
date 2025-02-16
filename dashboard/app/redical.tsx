@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Pie, PieChart } from "recharts";
 import { db } from "./firebase"; // Import Firebase Firestore
 import { doc, getDoc } from "firebase/firestore";
-
+import { getDatabase, ref, get } from "firebase/database";
 import {
   Card,
   CardContent,
@@ -27,32 +27,35 @@ export function Redical() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const docRef = doc(db, "appliances", "appliances"); // Reference the document
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+        const database = getDatabase(); // Initialize Realtime Database
+        const dbRef = ref(database, "/"); // Root reference
+        const snapshot = await get(dbRef);
+        
+        if (snapshot.exists()) {
+          const data = snapshot.val(); // Get data as JSON object
+  
+          // Format data correctly for PieChart
           const formattedData = Object.entries(data).map(([key, value]) => ({
             appliance: key,
-            usage: value,
+            usage: value.usage, // Extract 'usage' value from object
             fill: getRandomColor(), // Assign random colors
           }));
-
+  
           setChartData(formattedData);
         } else {
           setError("No data found");
         }
       } catch (error) {
-        console.error("Error fetching Firestore data:", error);
+        console.error("Error fetching Realtime Database data:", error);
         setError("Failed to load data");
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchData();
   }, []);
-
+  
   // Function to generate random colors for pie chart
   const getRandomColor = () => {
     return `hsl(${Math.floor(Math.random() * 360)}, 70%, 60%)`;

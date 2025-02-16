@@ -169,7 +169,7 @@ export function InputForm() {
                       <div>
             <p className="text-sm font-medium text-gray-700">Predicted Bill Progress</p>
             <progress
-              className="w-full"
+              className="w-full h-5 rounded-lg overflow-hidden [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:bg-blue-500 [&::-moz-progress-bar]:bg-blue-500"
               value={predictedProgress}
               max={budgetProgress}
               style={{ height: "20px", borderRadius: "8px" }}
