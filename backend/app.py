@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import pandas as pd
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, db
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
@@ -10,10 +10,11 @@ from sklearn.model_selection import train_test_split
 app = Flask(__name__)
 CORS(app)  # Allow requests from Next.js
 
-# Firebase setup (Replace with your Firestore credentials)
+# Firebase setup (Replace with your Realtime Database credentials)
 cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://switchxpert-default-rtdb.firebaseio.com/'  # Replace with your database URL
+})
 
 # Load dataset
 df = pd.read_csv('smart_home_bill_data.csv')
@@ -30,21 +31,19 @@ model.fit(X_train, y_train)
 # API Endpoint to get bill prediction
 @app.route('/predict', methods=['GET'])
 def predict_bill():
-    # Fetch latest appliance data from Firestore
-    doc_ref = db.collection("appliances").document("appliances")  # Adjust as needed
-    doc = doc_ref.get()
+    # Fetch latest appliance data from Realtime Database
+    ref = db.reference("/")  # Root reference
+    data = ref.get()
 
-    if not doc.exists:
+    if not data:
         return jsonify({"error": "No data found"}), 400
-
-    data = doc.to_dict()
 
     # Prepare input data for prediction
     new_input = pd.DataFrame([{
-        'Fan Usage Time (hours)': data.get('fan', 0),
-        'Bulb Usage Time (hours)': data.get('bulb', 0),
-        'Bell Usage Time (hours)': data.get('bell', 0),
-        'Socket Usage Time (hours)': data.get('socket', 0),
+        'Fan Usage Time (hours)': 0,
+        'Bulb Usage Time (hours)': data.get('bulb', {}).get('usage', 0),
+        'Bell Usage Time (hours)': data.get('bell', {}).get('usage', 0),
+        'Socket Usage Time (hours)': data.get('socket', {}).get('usage', 0),  # Adjust if socket data is available
     }])
 
     # Predict bill
